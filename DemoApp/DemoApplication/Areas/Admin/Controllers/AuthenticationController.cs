@@ -30,6 +30,11 @@ namespace DemoApplication.Areas.Admin.Controllers
         [HttpGet("login", Name = "admin-auth-login")]
         public async Task<IActionResult> LoginAsync()
         {
+            //if (_userService.IsAuthenticated)
+            //{
+            //    return RedirectToRoute("admin-author-list");
+            //}
+
             return View(new LoginViewModel());
         }
 
@@ -46,8 +51,11 @@ namespace DemoApplication.Areas.Admin.Controllers
                 ModelState.AddModelError(String.Empty, "Email or password is not correct");
                 return View(model);
             }
-
-            await _userService.SignInAsync(model.Email, model.Password, RoleNames.ADMIN);
+            if (!await _dbContext.Users.AnyAsync(u => u.Role.Name == RoleNames.ADMIN))
+            {
+                ModelState.AddModelError(String.Empty, "You are not admin");
+                return View(model);
+            }
 
             return RedirectToRoute("admin-author-list");
         }
